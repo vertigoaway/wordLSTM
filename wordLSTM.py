@@ -13,7 +13,7 @@ from griot import tool
 
 
 
-### LSTM Architecture Parameters TODO: pick snakecase or camelcase smh
+### LSTM Architecture Parameters
 inSize : int = 384         # Context window
 outSize : int = 1          # How many words to predict
 embedding_dim : int = 256  # Embedding dimension for vocabulary
@@ -22,7 +22,7 @@ num_layers : int = 3       # Number of LSTM layers
 dropout : float = 0.35     # Dropout for regularization between LSTM layers
 device : torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 modelPath = 'model.pth'
-vocab : griotNPW.StrictVocab 
+vocab : griotNPW.StrictVocab # set this before init!!
 
 
 class NeuralNetwork(nn.Module):
@@ -40,7 +40,7 @@ class NeuralNetwork(nn.Module):
                            dropout=dropout if num_layers > 1 else 0)
         self.layerNorm = nn.LayerNorm(hidden_size)
         self.linear = nn.Linear(hidden_size, outSize * vocSize)
-        self.softMax = nn.Sigmoid()
+        self.softMax = nn.Softmax(-1)
         self.outSize = outSize
         self.vocSize = vocSize
         

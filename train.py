@@ -12,13 +12,13 @@ from griot import numpyWord as griotNPW
 from griot import tool
 
 BATCHSIZE = 32
-
-
 epochs : int = 10
 trainingDataPath : str = "discordData.csv"
-
 lossFn = nn.CrossEntropyLoss(ignore_index=0)
 learning_rate : float = 5e-4
+l2Decay : float = 0
+
+
 
 
 def pullWords(trainingDataPath="discordData.csv",csvPosition=-3,endMsgChar:str="[END]") -> list[Any]:
@@ -51,12 +51,12 @@ def initVocabulary(dataReadout, n=10000) -> griotNPW.StrictVocab:
     return voc
 
 
-def loadTrainAndTestData(batch_size,vocab,dataReadout,trainingDataPath="data.csv",divisor=2,csvPosition=-3):
-
+def loadTrainAndTestData(batch_size,vocab,dataReadout,trainingDataPath="data.csv",divisor=2,csvPosition=-3) -> tuple[DataLoader[Any], DataLoader[Any]]:
 
     ### Begin tokenizing data
-    x = tool.flattenLines(vocab.tokenizeLines(dataReadout))
-    x = np.array(x,dtype=np.int32)
+    xraw = tool.flattenLines(vocab.tokenizeLines(dataReadout))
+    x = np.array(xraw,dtype=np.int32)
+    del xraw
     train_dataSet = integerDataset.lazyTextDataset(inSize=wordLSTM.inSize,outSize=wordLSTM.outSize,
                                     tokenizedData=x[0:len(x)//divisor],
                                     vocSize=len(vocab))
@@ -71,14 +71,16 @@ def loadTrainAndTestData(batch_size,vocab,dataReadout,trainingDataPath="data.csv
                                 num_workers=4)
     return train_dataloader,test_dataloader
 
-def main():
+def main() -> None:
 
     dataReadout, rawData = pullWords(endMsgChar='[END]')
 
     vocab = initVocabulary(dataReadout,n=5000)
 
 
-    train_dataloader, test_dataloader = loadTrainAndTestData(batch_size=BATCHSIZE,vocab=vocab,dataReadout=rawData)
+    train_dataloader, test_dataloader = loadTrainAndTestData(batch_size=BATCHSIZE,
+                                                             vocab=vocab,
+                                                             dataReadout=rawData)
     wordLSTM.vocab = vocab
 
     model = wordLSTM.create()
@@ -86,7 +88,9 @@ def main():
         model.loadWeights()
     except:
         pass
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate,weight_decay=0)
+    optimizer = torch.optim.Adam(model.parameters(), 
+                                 lr=learning_rate,
+                                 weight_decay=l2Decay)
 
 
     loopdeloop = loops.trainAndTest(train_dataloader,
@@ -94,7 +98,7 @@ def main():
                                         model,
                                         lossFn,
                                         optimizer)
-    epoch = 0
+    epoch = 1
     while epoch<=10:
         print(f'epoch: {epoch}')
         try:

@@ -5,3 +5,4 @@ model.pth
 .vscode/*
 .venv/*
 aged.py
+.mypy*
