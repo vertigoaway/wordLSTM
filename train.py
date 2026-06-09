@@ -17,7 +17,7 @@ trainingDataPath : str = "discordData.csv"
 lossFn = nn.CrossEntropyLoss(ignore_index=0)
 learning_rate : float = 5e-4
 l2Decay : float = 0
-
+csvPos : int = -3
 
 
 
@@ -73,7 +73,7 @@ def loadTrainAndTestData(batch_size,vocab,dataReadout,trainingDataPath="data.csv
 
 def main() -> None:
 
-    dataReadout, rawData = pullWords(endMsgChar='[END]')
+    dataReadout, rawData = pullWords(endMsgChar='[END]',csvPosition=csvPos)
 
     vocab = initVocabulary(dataReadout,n=5000)
 
